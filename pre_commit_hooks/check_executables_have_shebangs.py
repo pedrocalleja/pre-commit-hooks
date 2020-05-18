@@ -13,7 +13,7 @@ EXECUTABLE_VALUES = frozenset(('1', '3', '5', '7'))
 
 
 def check_executables(paths: List[str]) -> int:
-    if sys.platform == 'win32':  # pragma: no cover (windows)
+    if sys.platform == 'win32':  # pragma: win32 cover
         return _check_git_filemode(paths)
     else:  # pragma: win32 no cover
         retv = 0
@@ -25,7 +25,7 @@ def check_executables(paths: List[str]) -> int:
         return retv
 
 
-def _check_git_filemode(paths: List[str]) -> int:  # pragma: no cover (windows)
+def _check_git_filemode(paths: Sequence[str]) -> int:
     outs = cmd_output('git', 'ls-files', '--stage', '--', *paths)
     seen: Set[str] = set()
     for out in outs.splitlines():
@@ -37,14 +37,14 @@ def _check_git_filemode(paths: List[str]) -> int:  # pragma: no cover (windows)
 
         is_executable = any(b in EXECUTABLE_VALUES for b in tagmode[-3:])
         has_shebang = _check_has_shebang(path)
-        if is_executable ^ has_shebang:
+        if is_executable and not has_shebang:
             _message(path)
             seen.add(path)
 
     return int(bool(seen))
 
 
-def _check_has_shebang(path: str) -> int:  # pragma: win32 no cover
+def _check_has_shebang(path: str) -> int:
     with open(path, 'rb') as f:
         first_bytes = f.read(2)
 
